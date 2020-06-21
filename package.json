@@ -1,0 +1,36 @@
+{
+  "name": "ez",
+  "version": "0.1.0",
+  "description": "a mini vue",
+  "main": "index.js",
+  "module": "index.js",
+  "exports": {
+    "index": "./index.js"
+  },
+  "scripts": {
+    "vite": "vite",
+    "esm:watch": "rollup --config rollup.config.dev.js --watch",
+    "dev": "concurrently \"npm run vite\" \"npm run esm:watch\"",
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhongmeizhi/ez.git"
+  },
+  "keywords": [
+    "ez",
+    "vue",
+    "react"
+  ],
+  "author": "Mokou",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.10.3",
+    "@babel/plugin-transform-react-jsx": "^7.10.3",
+    "@rollup/plugin-babel": "^5.0.3",
+    "concurrently": "^5.2.0",
+    "rollup": "^2.11.2",
+    "rollup-plugin-terser": "^5.1.2",
+    "vite": "^1.0.0-beta.1"
+  }
+}
