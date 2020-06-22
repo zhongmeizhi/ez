@@ -60,8 +60,6 @@ const createChildren = (vnode, parentElm, refElm) => {
     createChildren(props.children, $ele);
   }
 
-  console.log(props, 'x');
-
   for (let propKey of getKeys(props)) {
     if (propKey !== 'children') {
       const val = props[propKey];
@@ -73,7 +71,7 @@ const createChildren = (vnode, parentElm, refElm) => {
   parentElm.appendChild($ele);
 };
 
-const render = (vnode, node, done) => {
+const render = (vnode, node) => {
   createChildren(vnode, node);
 };
 

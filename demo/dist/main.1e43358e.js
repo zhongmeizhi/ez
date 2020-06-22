@@ -216,8 +216,6 @@ var createChildren = function createChildren(vnode, parentElm, refElm) {
     createChildren(props.children, $ele);
   }
 
-  console.log(props, 'x');
-
   var _iterator = _createForOfIteratorHelper(getKeys(props)),
       _step;
 
@@ -240,7 +238,7 @@ var createChildren = function createChildren(vnode, parentElm, refElm) {
   parentElm.appendChild($ele);
 };
 
-var render = function render(vnode, node, done) {
+var render = function render(vnode, node) {
   createChildren(vnode, node);
 };
 
@@ -252,21 +250,41 @@ var Ez = {
 };
 var _default = Ez;
 exports.default = _default;
-},{}],"src/main.js":[function(require,module,exports) {
+},{}],"src/views/test-comp.js":[function(require,module,exports) {
 "use strict";
 
-var _ez = require("./ez.esm");
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = TestComp;
 
-function App() {
+var _ez = require("../ez.esm");
+
+function TestComp() {
   return (0, _ez.h)("div", {
     className: "home-page"
   }, (0, _ez.h)("button", {
     className: "btn"
   }, "1111"));
 }
+},{"../ez.esm":"src/ez.esm.js"}],"src/main.js":[function(require,module,exports) {
+"use strict";
+
+var _ez = require("./ez.esm");
+
+var _testComp = _interopRequireDefault(require("./views/test-comp"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function App(props) {
+  console.log(props, 'props');
+  return (0, _ez.h)("div", {
+    className: "app-page"
+  }, (0, _ez.h)(_testComp.default, null));
+}
 
 (0, _ez.render)((0, _ez.h)(App, null), document.querySelector("#app"));
-},{"./ez.esm":"src/ez.esm.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"./ez.esm":"src/ez.esm.js","./views/test-comp":"src/views/test-comp.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

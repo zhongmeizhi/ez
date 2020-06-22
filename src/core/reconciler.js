@@ -9,7 +9,6 @@ const createChildren = (vnode, parentElm, refElm) => {
   let v = typeof vnode.type === 'function'
       ? vnode.type()
       : vnode
-
   const props  = v.props || {};
 
   const $ele = v.type === 'text'
@@ -19,8 +18,6 @@ const createChildren = (vnode, parentElm, refElm) => {
   if (props.children) {
     createChildren(props.children, $ele);
   }
-
-  console.log(props, 'x')
 
   for(let propKey of getKeys(props)) {
     if (propKey !== 'children') {
@@ -34,7 +31,7 @@ const createChildren = (vnode, parentElm, refElm) => {
   parentElm.appendChild($ele);
 }
 
-export const render = (vnode, node, done) => {
+export const render = (vnode, node) => {
   createChildren(vnode, node);
 }
 
