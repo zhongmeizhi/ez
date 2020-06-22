@@ -8,9 +8,7 @@
     "index": "./index.js"
   },
   "scripts": {
-    "vite": "vite",
-    "esm:watch": "rollup --config rollup.config.dev.js --watch",
-    "dev": "concurrently \"npm run vite\" \"npm run esm:watch\"",
+    "dev": "rollup --config rollup.config.dev.js --watch",
     "build": "rollup -c"
   },
   "repository": {
@@ -26,11 +24,9 @@
   "license": "ISC",
   "devDependencies": {
     "@babel/core": "^7.10.3",
-    "@babel/plugin-transform-react-jsx": "^7.10.3",
     "@rollup/plugin-babel": "^5.0.3",
-    "concurrently": "^5.2.0",
+    "@babel/plugin-transform-react-jsx": "^7.10.1",
     "rollup": "^2.11.2",
-    "rollup-plugin-terser": "^5.1.2",
-    "vite": "^1.0.0-beta.1"
+    "rollup-plugin-terser": "^5.1.2"
   }
 }

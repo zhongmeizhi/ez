@@ -1,14 +1,16 @@
+import { h } from './core/h.js'
+import { render } from './core/reconciler'
 
-console.log(123)
+export {
+  h,
+  h as createElement,
+  render
+}
 
-class Ez {
-  constructor(options) {
-
-  }
-
-  mount(ele) {
-
-  } 
+const Ez = {
+  h,
+  createElement: h,
+  render
 }
 
 export default Ez;
