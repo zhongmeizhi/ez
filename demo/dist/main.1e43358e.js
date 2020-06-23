@@ -158,74 +158,67 @@ var isFn = function isFn(fn) {
   return typeof fn === 'function';
 };
 
-var isStr = function isStr(fn) {
-  return typeof fn === 'string';
+var isText = function isText(fn) {
+  return typeof fn === 'string' || typeof fn === 'number';
 };
 
 var getKeys = Object.keys; // }
 
-var createElement = function createElement(vnode) {
+var createElement = function createElement(vnode, parentEle) {
   var v = isFn(vnode.type) ? vnode.type(vnode.props) : vnode;
-  var $ele = isStr(v) ? document.createTextNode(v) : document.createElement(v.type);
-  var props = v.props || {};
 
-  var _iterator = _createForOfIteratorHelper(getKeys(props)),
-      _step;
+  if (isArr(v)) {
+    v.forEach(function (v) {
+      return createElement(v, parentEle);
+    });
+  } else {
+    var $ele = isText(v) ? document.createTextNode(v) : document.createElement(v.type);
+    var props = v.props || {};
 
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var propKey = _step.value;
-      if (propKey === 'children') ;else if (propKey.startsWith('on')) {
-        var name = propKey.slice(2);
-        var event = props[propKey];
-        $ele.addEventListener(name, event);
-      } else {
-        var val = props[propKey];
-        $ele.setAttribute && $ele.setAttribute(propKey, val);
+    var _iterator = _createForOfIteratorHelper(getKeys(props)),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var propKey = _step.value;
+        if (propKey === 'children') ;else if (propKey.startsWith('on')) {
+          var name = propKey.slice(2);
+          var event = props[propKey];
+          $ele.addEventListener(name, event);
+        } else {
+          var val = props[propKey];
+          $ele.setAttribute && $ele.setAttribute(propKey, val);
+        }
       }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
     }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
+
+    var children = v.props && v.props.children || [];
+    children.forEach(function (child) {
+      return createElement(child, $ele);
+    });
+    parentEle.appendChild($ele);
   }
-
-  var children = v.props && v.props.children || [];
-
-  var _iterator2 = _createForOfIteratorHelper(children),
-      _step2;
-
-  try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-      var child = _step2.value;
-      var $child = createElement(child);
-      $ele.appendChild($child);
-    }
-  } catch (err) {
-    _iterator2.e(err);
-  } finally {
-    _iterator2.f();
-  }
-
-  return $ele;
 };
 
 var render = function render(vnode, node) {
   var vList = isArr(vnode) ? vnode : [vnode];
 
-  var _iterator3 = _createForOfIteratorHelper(vList),
-      _step3;
+  var _iterator2 = _createForOfIteratorHelper(vList),
+      _step2;
 
   try {
-    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-      var vItem = _step3.value;
-      var $ele = createElement(vItem);
-      node.appendChild($ele);
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var vItem = _step2.value;
+      createElement(vItem, node);
     }
   } catch (err) {
-    _iterator3.e(err);
+    _iterator2.e(err);
   } finally {
-    _iterator3.f();
+    _iterator2.f();
   }
 };
 
@@ -243,7 +236,7 @@ exports.default = _default;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.flattenArray = exports.getKeys = exports.isStr = exports.isFn = exports.isArr = void 0;
+exports.flattenArray = exports.getKeys = exports.isText = exports.isStr = exports.isFn = exports.isArr = void 0;
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
@@ -271,6 +264,12 @@ var isStr = function isStr(fn) {
 };
 
 exports.isStr = isStr;
+
+var isText = function isText(fn) {
+  return typeof fn === 'string' || typeof fn === 'number';
+};
+
+exports.isText = isText;
 var getKeys = Object.keys;
 exports.getKeys = getKeys;
 
@@ -305,51 +304,45 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 // const updateElement = (dom, newProps) => {
 // }
-var createElement = function createElement(vnode) {
+var createElement = function createElement(vnode, parentEle) {
   var v = (0, _base.isFn)(vnode.type) ? vnode.type(vnode.props) : vnode;
-  var $ele = (0, _base.isStr)(v) ? document.createTextNode(v) : document.createElement(v.type);
-  var props = v.props || {};
 
-  var _iterator = _createForOfIteratorHelper((0, _base.getKeys)(props)),
-      _step;
+  if ((0, _base.isArr)(v)) {
+    v.forEach(function (v) {
+      return createElement(v, parentEle);
+    });
+  } else {
+    var $ele = (0, _base.isText)(v) ? document.createTextNode(v) : document.createElement(v.type);
+    var props = v.props || {};
 
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var propKey = _step.value;
+    var _iterator = _createForOfIteratorHelper((0, _base.getKeys)(props)),
+        _step;
 
-      if (propKey === 'children') {} else if (propKey.startsWith('on')) {
-        var name = propKey.slice(2);
-        var event = props[propKey];
-        $ele.addEventListener(name, event);
-      } else {
-        var val = props[propKey];
-        $ele.setAttribute && $ele.setAttribute(propKey, val);
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var propKey = _step.value;
+
+        if (propKey === 'children') {} else if (propKey.startsWith('on')) {
+          var name = propKey.slice(2);
+          var event = props[propKey];
+          $ele.addEventListener(name, event);
+        } else {
+          var val = props[propKey];
+          $ele.setAttribute && $ele.setAttribute(propKey, val);
+        }
       }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
     }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
+
+    var children = v.props && v.props.children || [];
+    children.forEach(function (child) {
+      return createElement(child, $ele);
+    });
+    parentEle.appendChild($ele);
   }
-
-  var children = v.props && v.props.children || [];
-
-  var _iterator2 = _createForOfIteratorHelper(children),
-      _step2;
-
-  try {
-    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-      var child = _step2.value;
-      var $child = createElement(child);
-      $ele.appendChild($child);
-    }
-  } catch (err) {
-    _iterator2.e(err);
-  } finally {
-    _iterator2.f();
-  }
-
-  return $ele;
 };
 
 exports.createElement = createElement;
@@ -357,19 +350,18 @@ exports.createElement = createElement;
 var render = function render(vnode, node) {
   var vList = (0, _base.isArr)(vnode) ? vnode : [vnode];
 
-  var _iterator3 = _createForOfIteratorHelper(vList),
-      _step3;
+  var _iterator2 = _createForOfIteratorHelper(vList),
+      _step2;
 
   try {
-    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-      var vItem = _step3.value;
-      var $ele = createElement(vItem);
-      node.appendChild($ele);
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var vItem = _step2.value;
+      createElement(vItem, node);
     }
   } catch (err) {
-    _iterator3.e(err);
+    _iterator2.e(err);
   } finally {
-    _iterator3.f();
+    _iterator2.f();
   }
 };
 
@@ -390,7 +382,7 @@ function TestComp(props) {
   console.log(props, 'props');
   return (0, _ez.h)("div", {
     className: "home-page"
-  }, props.children[0]);
+  }, props.children);
 }
 },{"../ez.esm":"src/ez.esm.js","../../../src/core/reconciler":"../src/core/reconciler.js"}],"src/main.js":[function(require,module,exports) {
 "use strict";
@@ -401,28 +393,25 @@ var _testComp = _interopRequireDefault(require("./views/test-comp"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function App(props) {
-  var _this = this;
-
-  var clickHandler = function clickHandler() {
-    console.log(_this, 'this');
-  };
-
+function App() {
+  var btnName = '按钮';
   return (0, _ez.h)("div", {
-    className: "app-page",
-    onclick: clickHandler
-  }, (0, _ez.h)(_testComp.default, {
+    className: "app-page"
+  }, (0, _ez.h)("div", {
+    name: "proName"
+  }, "\u8FD9\u662F\u4E2Adiv"), [1, 2, 3].map(function (val) {
+    return (0, _ez.h)("div", null, val);
+  }), (0, _ez.h)(_testComp.default, {
     propsTest: "propsTest"
   }, (0, _ez.h)("button", {
     className: "btn"
   }, "1111"), (0, _ez.h)("button", {
-    className: "btn"
-  }, "1111"), (0, _ez.h)("button", {
-    className: "btn"
-  }, "1111")));
+    className: "btn",
+    onclick: clickHandler
+  }, btnName)));
 }
 
-(0, _ez.render)((0, _ez.h)(App, null), document.querySelector("#app"));
+(0, _ez.render)((0, _ez.h)(App, null), document.body);
 },{"./ez.esm":"src/ez.esm.js","./views/test-comp":"src/views/test-comp.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';

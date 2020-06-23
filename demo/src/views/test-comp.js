@@ -7,7 +7,7 @@ export default function TestComp(props) {
 
   return (
     <div className="home-page">
-      {props.children[0]}
+      {props.children}
     </div>
   )
 }
