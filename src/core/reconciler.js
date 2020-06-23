@@ -1,15 +1,15 @@
 import { getKeys, isArr, isFn, isText } from '../utils/base.js';
 
-// const updateElement = (dom, newProps) => {
-// }
+let updateQueue = [];
 
-export const createElement = (vnode, parentEle) => {
+export const mount = (vnode, parentEle) => {
+  console.log(vnode, 'vnode')
   let v = isFn(vnode.type)
       ? vnode.type(vnode.props)
       : vnode
 
   if (isArr(v)) {
-    v.forEach(v => createElement(v, parentEle));
+    v.forEach(v => mount(v, parentEle));
   } else {
     let $ele = isText(v)
         ? document.createTextNode(v)
@@ -29,16 +29,13 @@ export const createElement = (vnode, parentEle) => {
     }
     
     const children = (v.props && v.props.children) || [];
-    children.forEach(child => createElement(child, $ele))
+    children.forEach(child => mount(child, $ele))
     
     parentEle.appendChild($ele);
   }
 }
 
-export const render = (vnode, node) => {
-  const vList = isArr(vnode) ? vnode : [vnode];
-  for (const vItem of vList) {
-    createElement(vItem, node);
-  }
+export const createApp = (vnode, node, done) => {
+  mount(vnode, node);
 }
 

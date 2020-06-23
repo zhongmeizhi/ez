@@ -1,16 +1,21 @@
 import { h } from './core/h.js'
-import { render } from './core/reconciler'
+import { createApp } from './core/reconciler'
+import { reactive, useState } from './core/hooks'
 
 export {
   h,
   h as createElement,
-  render
+  createApp,
+  reactive,
+  useState
 }
 
 const Ez = {
   h,
   createElement: h,
-  render
+  createApp,
+  reactive,
+  useState
 }
 
 export default Ez;

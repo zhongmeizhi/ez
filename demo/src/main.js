@@ -1,10 +1,16 @@
-import { h, render } from "./ez.esm";
+import { h, createApp, reactive, useState } from "./ez.esm";
 
 import TestComp from './views/test-comp';
 
-function App() {
-  
-  let btnName = '按钮';
+function App(props) {
+
+  let [count, setCount] = useState({
+    num: 0
+  });
+
+  const clickHandler = () => {
+    setCount(10);
+  }
 
   return (
     <div
@@ -15,12 +21,12 @@ function App() {
         [1,2,3].map(val => <div>{val}</div>)
       }
       <TestComp propsTest="propsTest">
-        <button className="btn">1111</button>
-        <button className="btn" onclick={clickHandler}>{btnName}</button>
+        <button className="btn">{count.num}</button>
+        <button className="btn" onclick={clickHandler}>按钮</button>
       </TestComp>
     </div>
   )
 }
 
 
-render(<App />, document.body)
+createApp(<App />, document.body)
