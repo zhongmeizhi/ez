@@ -127,6 +127,124 @@ exports.render = exports.h = exports.createElement = exports.default = void 0;
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+var h = function h(type, attrs) {
+  var props = attrs || {};
+  var key = props.key || null;
+  var ref = props.ref || null;
+  delete props.key;
+  delete props.ref;
+
+  for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    children[_key - 2] = arguments[_key];
+  }
+
+  props.children = children;
+  return {
+    type: type,
+    props: props,
+    key: key,
+    ref: ref
+  };
+};
+
+exports.h = exports.createElement = h;
+var isArr = Array.isArray;
+
+var isFn = function isFn(fn) {
+  return typeof fn === 'function';
+};
+
+var isStr = function isStr(fn) {
+  return typeof fn === 'string';
+};
+
+var getKeys = Object.keys; // }
+
+var createElement = function createElement(vnode) {
+  var v = isFn(vnode.type) ? vnode.type(vnode.props) : vnode;
+  var $ele = isStr(v) ? document.createTextNode(v) : document.createElement(v.type);
+  var props = v.props || {};
+
+  var _iterator = _createForOfIteratorHelper(getKeys(props)),
+      _step;
+
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var propKey = _step.value;
+      if (propKey === 'children') ;else if (propKey.startsWith('on')) {
+        var name = propKey.slice(2);
+        var event = props[propKey];
+        $ele.addEventListener(name, event);
+      } else {
+        var val = props[propKey];
+        $ele.setAttribute && $ele.setAttribute(propKey, val);
+      }
+    }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
+
+  var children = v.props && v.props.children || [];
+
+  var _iterator2 = _createForOfIteratorHelper(children),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var child = _step2.value;
+      var $child = createElement(child);
+      $ele.appendChild($child);
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  return $ele;
+};
+
+var render = function render(vnode, node) {
+  var vList = isArr(vnode) ? vnode : [vnode];
+
+  var _iterator3 = _createForOfIteratorHelper(vList),
+      _step3;
+
+  try {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      var vItem = _step3.value;
+      var $ele = createElement(vItem);
+      node.appendChild($ele);
+    }
+  } catch (err) {
+    _iterator3.e(err);
+  } finally {
+    _iterator3.f();
+  }
+};
+
+exports.render = render;
+var Ez = {
+  h: h,
+  createElement: h,
+  render: render
+};
+var _default = Ez;
+exports.default = _default;
+},{}],"../src/utils/base.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.flattenArray = exports.getKeys = exports.isStr = exports.isFn = exports.isArr = void 0;
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -140,6 +258,21 @@ function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToAr
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 var isArr = Array.isArray;
+exports.isArr = isArr;
+
+var isFn = function isFn(fn) {
+  return typeof fn === 'function';
+};
+
+exports.isFn = isFn;
+
+var isStr = function isStr(fn) {
+  return typeof fn === 'string';
+};
+
+exports.isStr = isStr;
+var getKeys = Object.keys;
+exports.getKeys = getKeys;
 
 var flattenArray = function flattenArray(arr) {
   while (isArr(arr) && arr.some(function (item) {
@@ -153,104 +286,95 @@ var flattenArray = function flattenArray(arr) {
   return arr;
 };
 
-var isText = function isText(val) {
-  return typeof val === 'number' || typeof val === 'string';
-};
+exports.flattenArray = flattenArray;
+},{}],"../src/core/reconciler.js":[function(require,module,exports) {
+"use strict";
 
-var isExist = function isExist(v) {
-  return v != null && v !== false && v !== true;
-};
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.render = exports.createElement = void 0;
 
-var getKeys = Object.keys;
+var _base = require("../utils/base.js");
 
-var h = function h(type, attrs) {
-  var props = attrs || {};
-  var key = props.key || null;
-  var ref = props.ref || null;
-  var children = [];
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
-  for (var i = 2; i < arguments.length; i++) {
-    var vnode = arguments[i];
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
-    if (isExist(vnode)) {
-      flattenArray(vnode);
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-      if (isText(vnode)) {
-        vnode = createText(vnode);
-      }
-
-      children.push(vnode);
-    }
-  }
-
-  if (children.length) {
-    props.children = children.length === 1 ? children[0] : children;
-  }
-
-  return {
-    type: type,
-    props: props,
-    key: key,
-    ref: ref
-  };
-};
-
-exports.h = exports.createElement = h;
-
-function createText(vnode) {
-  return {
-    type: 'text',
-    props: {
-      nodeValue: vnode
-    }
-  };
-}
-
-var createChildren = function createChildren(vnode, parentElm, refElm) {
-  // document.createDocumentFragment()
-  var v = typeof vnode.type === 'function' ? vnode.type() : vnode;
+// const updateElement = (dom, newProps) => {
+// }
+var createElement = function createElement(vnode) {
+  var v = (0, _base.isFn)(vnode.type) ? vnode.type(vnode.props) : vnode;
+  var $ele = (0, _base.isStr)(v) ? document.createTextNode(v) : document.createElement(v.type);
   var props = v.props || {};
-  var $ele = v.type === 'text' ? document.createTextNode(props.nodeValue) : document.createElement(v.type);
 
-  if (props.children) {
-    createChildren(props.children, $ele);
-  }
-
-  var _iterator = _createForOfIteratorHelper(getKeys(props)),
+  var _iterator = _createForOfIteratorHelper((0, _base.getKeys)(props)),
       _step;
 
   try {
     for (_iterator.s(); !(_step = _iterator.n()).done;) {
       var propKey = _step.value;
 
-      if (propKey !== 'children') {
+      if (propKey === 'children') {} else if (propKey.startsWith('on')) {
+        var name = propKey.slice(2);
+        var event = props[propKey];
+        $ele.addEventListener(name, event);
+      } else {
         var val = props[propKey];
         $ele.setAttribute && $ele.setAttribute(propKey, val);
       }
-    } // updateElement($ele);
-
+    }
   } catch (err) {
     _iterator.e(err);
   } finally {
     _iterator.f();
   }
 
-  parentElm.appendChild($ele);
+  var children = v.props && v.props.children || [];
+
+  var _iterator2 = _createForOfIteratorHelper(children),
+      _step2;
+
+  try {
+    for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+      var child = _step2.value;
+      var $child = createElement(child);
+      $ele.appendChild($child);
+    }
+  } catch (err) {
+    _iterator2.e(err);
+  } finally {
+    _iterator2.f();
+  }
+
+  return $ele;
 };
 
+exports.createElement = createElement;
+
 var render = function render(vnode, node) {
-  createChildren(vnode, node);
+  var vList = (0, _base.isArr)(vnode) ? vnode : [vnode];
+
+  var _iterator3 = _createForOfIteratorHelper(vList),
+      _step3;
+
+  try {
+    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+      var vItem = _step3.value;
+      var $ele = createElement(vItem);
+      node.appendChild($ele);
+    }
+  } catch (err) {
+    _iterator3.e(err);
+  } finally {
+    _iterator3.f();
+  }
 };
 
 exports.render = render;
-var Ez = {
-  h: h,
-  createElement: h,
-  render: render
-};
-var _default = Ez;
-exports.default = _default;
-},{}],"src/views/test-comp.js":[function(require,module,exports) {
+},{"../utils/base.js":"../src/utils/base.js"}],"src/views/test-comp.js":[function(require,module,exports) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -260,14 +384,15 @@ exports.default = TestComp;
 
 var _ez = require("../ez.esm");
 
-function TestComp() {
+var _reconciler = require("../../../src/core/reconciler");
+
+function TestComp(props) {
+  console.log(props, 'props');
   return (0, _ez.h)("div", {
     className: "home-page"
-  }, (0, _ez.h)("button", {
-    className: "btn"
-  }, "1111"));
+  }, props.children[0]);
 }
-},{"../ez.esm":"src/ez.esm.js"}],"src/main.js":[function(require,module,exports) {
+},{"../ez.esm":"src/ez.esm.js","../../../src/core/reconciler":"../src/core/reconciler.js"}],"src/main.js":[function(require,module,exports) {
 "use strict";
 
 var _ez = require("./ez.esm");
@@ -277,10 +402,24 @@ var _testComp = _interopRequireDefault(require("./views/test-comp"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function App(props) {
-  console.log(props, 'props');
+  var _this = this;
+
+  var clickHandler = function clickHandler() {
+    console.log(_this, 'this');
+  };
+
   return (0, _ez.h)("div", {
-    className: "app-page"
-  }, (0, _ez.h)(_testComp.default, null));
+    className: "app-page",
+    onclick: clickHandler
+  }, (0, _ez.h)(_testComp.default, {
+    propsTest: "propsTest"
+  }, (0, _ez.h)("button", {
+    className: "btn"
+  }, "1111"), (0, _ez.h)("button", {
+    className: "btn"
+  }, "1111"), (0, _ez.h)("button", {
+    className: "btn"
+  }, "1111")));
 }
 
 (0, _ez.render)((0, _ez.h)(App, null), document.querySelector("#app"));
@@ -312,7 +451,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "55424" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65330" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

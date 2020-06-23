@@ -1,4 +1,8 @@
 export const isArr = Array.isArray;
+export const isFn = (fn) => typeof fn === 'function';
+export const isStr = (fn) => typeof fn === 'string';
+
+export const getKeys = Object.keys;
 
 export const flattenArray = (arr) => {
   while(isArr(arr) && arr.some(item => isArr(item))) {
@@ -6,9 +10,3 @@ export const flattenArray = (arr) => {
   }
   return arr;
 }
-
-export const isText = (val) => typeof val === 'number' || typeof val === 'string';
-
-export const isExist = (v) => v != null && v !== false && v !== true
-
-export const getKeys = Object.keys;

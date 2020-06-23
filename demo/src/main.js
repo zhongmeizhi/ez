@@ -3,10 +3,21 @@ import { h, render } from "./ez.esm";
 import TestComp from './views/test-comp';
 
 function App(props) {
-  console.log(props, 'props')
+  
+  const clickHandler = () => {
+    console.log(this, 'this')
+  }
+
   return (
-    <div className="app-page">
-      <TestComp />
+    <div
+      className="app-page"
+      onclick={clickHandler}
+    >
+      <TestComp propsTest="propsTest">
+        <button className="btn">1111</button>
+        <button className="btn">1111</button>
+        <button className="btn">1111</button>
+      </TestComp>
     </div>
   )
 }

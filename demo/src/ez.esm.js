@@ -1,39 +1,10 @@
-const isArr = Array.isArray;
-const flattenArray = arr => {
-  while (isArr(arr) && arr.some(item => isArr(item))) {
-    arr = [].concat(...arr);
-  }
-
-  return arr;
-};
-const isText = val => typeof val === 'number' || typeof val === 'string';
-const isExist = v => v != null && v !== false && v !== true;
-const getKeys = Object.keys;
-
-const h = function (type, attrs) {
+const h = function (type, attrs, ...children) {
   let props = attrs || {};
   let key = props.key || null;
   let ref = props.ref || null;
-  let children = [];
-
-  for (let i = 2; i < arguments.length; i++) {
-    let vnode = arguments[i];
-
-    if (isExist(vnode)) {
-      flattenArray(vnode);
-
-      if (isText(vnode)) {
-        vnode = createText(vnode);
-      }
-
-      children.push(vnode);
-    }
-  }
-
-  if (children.length) {
-    props.children = children.length === 1 ? children[0] : children;
-  }
-
+  delete props.key;
+  delete props.ref;
+  props.children = children;
   return {
     type,
     props,
@@ -41,38 +12,46 @@ const h = function (type, attrs) {
     ref
   };
 };
-function createText(vnode) {
-  return {
-    type: 'text',
-    props: {
-      nodeValue: vnode
-    }
-  };
-}
 
-const createChildren = (vnode, parentElm, refElm) => {
-  // document.createDocumentFragment()
-  let v = typeof vnode.type === 'function' ? vnode.type() : vnode;
+const isArr = Array.isArray;
+const isFn = fn => typeof fn === 'function';
+const isStr = fn => typeof fn === 'string';
+const getKeys = Object.keys;
+
+// }
+
+const createElement = vnode => {
+  let v = isFn(vnode.type) ? vnode.type(vnode.props) : vnode;
+  let $ele = isStr(v) ? document.createTextNode(v) : document.createElement(v.type);
   const props = v.props || {};
-  const $ele = v.type === 'text' ? document.createTextNode(props.nodeValue) : document.createElement(v.type);
-
-  if (props.children) {
-    createChildren(props.children, $ele);
-  }
 
   for (let propKey of getKeys(props)) {
-    if (propKey !== 'children') {
+    if (propKey === 'children') ; else if (propKey.startsWith('on')) {
+      const name = propKey.slice(2);
+      const event = props[propKey];
+      $ele.addEventListener(name, event);
+    } else {
       const val = props[propKey];
       $ele.setAttribute && $ele.setAttribute(propKey, val);
     }
-  } // updateElement($ele);
+  }
 
+  const children = v.props && v.props.children || [];
 
-  parentElm.appendChild($ele);
+  for (const child of children) {
+    const $child = createElement(child);
+    $ele.appendChild($child);
+  }
+
+  return $ele;
 };
-
 const render = (vnode, node) => {
-  createChildren(vnode, node);
+  const vList = isArr(vnode) ? vnode : [vnode];
+
+  for (const vItem of vList) {
+    const $ele = createElement(vItem);
+    node.appendChild($ele);
+  }
 };
 
 const Ez = {

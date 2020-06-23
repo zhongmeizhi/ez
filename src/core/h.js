@@ -1,31 +1,13 @@
 
-import { flattenArray, isText, isExist } from '../utils/base.js';
-
-export const h = function (type, attrs) {
+export const h = function (type, attrs, ...children) {
   let props = attrs || {};
-  let key = props.key || null;
-  let ref = props.ref || null;
-  
-  let children = [];
+  let key = props.key || null
+  let ref = props.ref || null
 
-  for (let i = 2; i < arguments.length; i++) {
-    let vnode = arguments[i];
-    if (isExist(vnode)) {
-      flattenArray(vnode);
-      if (isText(vnode)) {
-        vnode = createText(vnode)
-      }
-      children.push(vnode)
-    }
-  }
+  delete props.key
+  delete props.ref
 
-  if (children.length) {
-    props.children = children.length === 1 ? children[0] : children;
-  }
+  props.children = children;
   
   return { type, props, key, ref };
-}
-
-export function createText(vnode) {
-  return { type: 'text', props: { nodeValue: vnode } }
 }
