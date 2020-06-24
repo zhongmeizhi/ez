@@ -1,28 +1,32 @@
-import { h, createApp, reactive, useState } from "./ez.esm";
+import { h, createApp, useState } from "./ez.esm";
 
 import TestComp from './views/test-comp';
 
 function App(props) {
 
-  let [count, setCount] = useState({
-    num: 0
-  });
+  let [count, setCount] = useState(10);
 
   const clickHandler = () => {
-    setCount(10);
+    setCount(count += 10);
+    console.log(count, 'count')
+    props.$forceUpdate();
   }
 
   return (
     <div
       className="app-page"
     >
-      <div name="proName">这是个div</div>
       {
-        [1,2,3].map(val => <div>{val}</div>)
+        [1,2,3].map(val => <span>{val + 'map、'}</span>)
       }
-      <TestComp propsTest="propsTest">
-        <button className="btn">{count.num}</button>
-        <button className="btn" onclick={clickHandler}>按钮</button>
+      <div name="proName">a div</div>
+      <br />
+      <TestComp propsTest="222">
+        <div className="btn">
+          <span>number: </span>
+          <span>{count}</span>
+        </div>
+        <button className="btn" onclick={clickHandler}>add number</button>
       </TestComp>
     </div>
   )

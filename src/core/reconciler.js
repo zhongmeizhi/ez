@@ -1,41 +1,92 @@
 import { getKeys, isArr, isFn, isText } from '../utils/base.js';
 
+let id = 0;
 let updateQueue = [];
 
-export const mount = (vnode, parentEle) => {
-  console.log(vnode, 'vnode')
-  let v = isFn(vnode.type)
-      ? vnode.type(vnode.props)
-      : vnode
+/* 
+  fiber = {
+    id
+    dirty,
+    key,
+    type,
+    parent,
+    parentNode,
+    vnode,
+    ref,
+    props: {
+      children
+    },
+    sibling
+  }
+*/
 
-  if (isArr(v)) {
-    v.forEach(v => mount(v, parentEle));
-  } else {
-    let $ele = isText(v)
-        ? document.createTextNode(v)
-        : document.createElement(v.type)
-        
-    const props  = v.props || {};
-    for(let propKey of getKeys(props)) {
-      if (propKey === 'children') {
-      } else if (propKey.startsWith('on')) {
-        const name = propKey.slice(2);
-        const event = props[propKey];
-        $ele.addEventListener(name, event);
-      } else {
-        const val = props[propKey];
-        $ele.setAttribute && $ele.setAttribute(propKey, val);
-      }
+const createElement = (vnode, parentEle) => {
+  let $ele = isText(vnode)
+    ? document.createTextNode(vnode)
+    : document.createElement(vnode.type)
+    
+  const props  = vnode.props || {};
+  for(let propKey of getKeys(props)) {
+    if (propKey === 'children') {
+    } else if (propKey.startsWith('on')) {
+      const name = propKey.slice(2);
+      const event = props[propKey];
+      $ele.addEventListener(name, event);
+    } else {
+      const val = props[propKey];
+      $ele.setAttribute && $ele.setAttribute(propKey, val);
     }
-    
-    const children = (v.props && v.props.children) || [];
-    children.forEach(child => mount(child, $ele))
-    
-    parentEle.appendChild($ele);
+  }
+
+  const children = props.children || [];
+  children.forEach(child => {
+    child && mount({ parentNode: $ele, vnode: child })
+  })
+
+  parentEle.appendChild($ele);
+  return $ele;
+}
+
+const forceUpdate = (fiber) => {
+  return updateComponent.bind(null, fiber);
+}
+
+const updateComponent = (fiber) => {
+  const { vnode, parentNode } = fiber;
+  const props = Object.assign({}, vnode.props, { $forceUpdate: forceUpdate(fiber) })
+  const v = vnode.type(props);
+  if (!fiber.ref) {
+    fiber.ref = createElement(v, parentNode);
+  } else {
+    const ref = createElement(v, parentNode);
+    fiber.parentNode.replaceChild(ref, fiber.ref)
   }
 }
 
-export const createApp = (vnode, node, done) => {
-  mount(vnode, node);
+const updateElement = (fiber) => {
+  const { vnode, parentNode } = fiber;
+  if (isArr(vnode)) {
+    vnode.forEach(v => createElement(v, parentNode));
+  } else {
+    createElement(vnode, parentNode)
+  }
+}
+
+export const mount = (fiber) => {
+  const { vnode } = fiber;
+  if (isFn(vnode.type)) {
+    updateComponent(fiber);
+  } else {
+    updateElement(fiber);
+  }
+}
+
+export const createApp = (vnode, node) => {
+  let rootFiber = {
+    id,
+    parentNode: node,
+    vnode
+  }
+  mount(rootFiber);
 }
 

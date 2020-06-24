@@ -22,7 +22,6 @@ let cursor = 0;
 
 const createSetter = (cursor) => (newVal) => {
   state[cursor] = newVal;
-  const [current] = getHook(cursor);
 }
 
 export function useState(initVal) {

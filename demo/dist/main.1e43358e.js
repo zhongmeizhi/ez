@@ -126,15 +126,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.useState = useState;
 exports.reactive = exports.h = exports.createElement = exports.createApp = exports.default = void 0;
 
-function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
-
-function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return; var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
-
-function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
-
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e2) { throw _e2; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e3) { didErr = true; err = _e3; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
@@ -172,50 +164,110 @@ var isText = function isText(fn) {
 };
 
 var getKeys = Object.keys;
+var id = 0;
+/* 
+  fiber = {
+    id
+    dirty,
+    key,
+    type,
+    parent,
+    parentNode,
+    vnode,
+    ref,
+    props: {
+      children
+    },
+    sibling
+  }
+*/
 
-var mount = function mount(vnode, parentEle) {
-  console.log(vnode, 'vnode');
-  var v = isFn(vnode.type) ? vnode.type(vnode.props) : vnode;
+var createElement = function createElement(vnode, parentEle) {
+  var $ele = isText(vnode) ? document.createTextNode(vnode) : document.createElement(vnode.type);
+  var props = vnode.props || {};
 
-  if (isArr(v)) {
-    v.forEach(function (v) {
-      return mount(v, parentEle);
-    });
-  } else {
-    var $ele = isText(v) ? document.createTextNode(v) : document.createElement(v.type);
-    var props = v.props || {};
+  var _iterator = _createForOfIteratorHelper(getKeys(props)),
+      _step;
 
-    var _iterator = _createForOfIteratorHelper(getKeys(props)),
-        _step;
-
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var propKey = _step.value;
-        if (propKey === 'children') ;else if (propKey.startsWith('on')) {
-          var name = propKey.slice(2);
-          var event = props[propKey];
-          $ele.addEventListener(name, event);
-        } else {
-          var val = props[propKey];
-          $ele.setAttribute && $ele.setAttribute(propKey, val);
-        }
+  try {
+    for (_iterator.s(); !(_step = _iterator.n()).done;) {
+      var propKey = _step.value;
+      if (propKey === 'children') ;else if (propKey.startsWith('on')) {
+        var name = propKey.slice(2);
+        var event = props[propKey];
+        $ele.addEventListener(name, event);
+      } else {
+        var val = props[propKey];
+        $ele.setAttribute && $ele.setAttribute(propKey, val);
       }
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
     }
+  } catch (err) {
+    _iterator.e(err);
+  } finally {
+    _iterator.f();
+  }
 
-    var children = v.props && v.props.children || [];
-    children.forEach(function (child) {
-      return mount(child, $ele);
+  var children = props.children || [];
+  children.forEach(function (child) {
+    child && mount({
+      parentNode: $ele,
+      vnode: child
     });
-    parentEle.appendChild($ele);
+  });
+  parentEle.appendChild($ele);
+  return $ele;
+};
+
+var forceUpdate = function forceUpdate(fiber) {
+  return updateComponent.bind(null, fiber);
+};
+
+var updateComponent = function updateComponent(fiber) {
+  var vnode = fiber.vnode,
+      parentNode = fiber.parentNode;
+  var props = Object.assign({}, vnode.props, {
+    $forceUpdate: forceUpdate(fiber)
+  });
+  var v = vnode.type(props);
+
+  if (!fiber.ref) {
+    fiber.ref = createElement(v, parentNode);
+  } else {
+    var ref = createElement(v, parentNode);
+    fiber.parentNode.replaceChild(ref, fiber.ref);
   }
 };
 
-var createApp = function createApp(vnode, node, done) {
-  mount(vnode, node);
+var updateElement = function updateElement(fiber) {
+  var vnode = fiber.vnode,
+      parentNode = fiber.parentNode;
+
+  if (isArr(vnode)) {
+    vnode.forEach(function (v) {
+      return createElement(v, parentNode);
+    });
+  } else {
+    createElement(vnode, parentNode);
+  }
+};
+
+var mount = function mount(fiber) {
+  var vnode = fiber.vnode;
+
+  if (isFn(vnode.type)) {
+    updateComponent(fiber);
+  } else {
+    updateElement(fiber);
+  }
+};
+
+var createApp = function createApp(vnode, node) {
+  var rootFiber = {
+    id: id,
+    parentNode: node,
+    vnode: vnode
+  };
+  mount(rootFiber);
 };
 
 exports.createApp = createApp;
@@ -230,12 +282,6 @@ var reactive = function reactive(target) {
 };
 
 exports.reactive = reactive;
-
-var getHook = function getHook(cursor) {
-  console.log(cursor, 'cursor');
-  return [];
-};
-
 var state = [];
 var setters = [];
 var isFirstRun = true;
@@ -244,10 +290,6 @@ var cursor = 0;
 var createSetter = function createSetter(cursor) {
   return function (newVal) {
     state[cursor] = newVal;
-
-    var _getHook = getHook(cursor),
-        _getHook2 = _slicedToArray(_getHook, 1),
-        current = _getHook2[0];
   };
 };
 
@@ -310,31 +352,31 @@ function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 function App(props) {
-  var _useState = (0, _ez.useState)({
-    num: 0
-  }),
+  var _useState = (0, _ez.useState)(10),
       _useState2 = _slicedToArray(_useState, 2),
       count = _useState2[0],
       setCount = _useState2[1];
 
   var clickHandler = function clickHandler() {
-    setCount(10);
+    setCount(count += 10);
+    console.log(count, 'count');
+    props.$forceUpdate();
   };
 
   return (0, _ez.h)("div", {
     className: "app-page"
-  }, (0, _ez.h)("div", {
+  }, [1, 2, 3].map(function (val) {
+    return (0, _ez.h)("span", null, val + 'map、');
+  }), (0, _ez.h)("div", {
     name: "proName"
-  }, "\u8FD9\u662F\u4E2Adiv"), [1, 2, 3].map(function (val) {
-    return (0, _ez.h)("div", null, val);
-  }), (0, _ez.h)(_testComp.default, {
-    propsTest: "propsTest"
-  }, (0, _ez.h)("button", {
+  }, "a div"), (0, _ez.h)("br", null), (0, _ez.h)(_testComp.default, {
+    propsTest: "222"
+  }, (0, _ez.h)("div", {
     className: "btn"
-  }, count.num), (0, _ez.h)("button", {
+  }, (0, _ez.h)("span", null, "number: "), (0, _ez.h)("span", null, count)), (0, _ez.h)("button", {
     className: "btn",
     onclick: clickHandler
-  }, "\u6309\u94AE")));
+  }, "add number")));
 }
 
 (0, _ez.createApp)((0, _ez.h)(App, null), document.body);
@@ -366,7 +408,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "65330" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58625" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
