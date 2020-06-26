@@ -1,39 +1,31 @@
-const handlers = {
-  // set(val) {
-  //   console.log(val, '')
-  // }
-}
+import { render } from "./dom";
 
-export const reactive = (target) => {
-
-  const observed = new Proxy(target, handlers);
-  return observed;
-}
-
-const getHook = (cursor) => {
-  console.log(cursor, 'cursor')
-  return []
-}
-
-let state = [];
-let setters = [];
-let isFirstRun = true;
+let currentHook = {};
 let cursor = 0;
+let hooks = [];
+
+export const resetHook = (vnode, dom) => {
+  cursor = 0;
+  currentHook = { vnode, dom };
+}
 
 const createSetter = (cursor) => (newVal) => {
-  state[cursor] = newVal;
+  let hook = hooks[cursor];
+  let current = hook.current;
+  hook.state = newVal;
+  render(current.vnode, current.dom)
 }
 
 export function useState(initVal) {
-  if (isFirstRun) {
-    state.push(initVal);
-    setters.push(createSetter(cursor));
-    isFirstRun = false;
+  if (hooks[cursor] === undefined) {
+    const hook = {
+      current: currentHook,
+      state: initVal,
+      setter: createSetter(cursor)
+    }
+    hooks.push(hook)
   }
-
-  const setter = setters[cursor];
-  const value = state[cursor];
-
+  const { state, setter} = hooks[cursor];
   cursor++;
-  return [value, setter];
+  return [state, setter];
 }

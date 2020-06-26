@@ -124,36 +124,13 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.useState = useState;
-exports.reactive = exports.h = exports.createElement = exports.createApp = exports.default = void 0;
+exports.render = exports.h = exports.createElement = exports.default = void 0;
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { _defineProperty(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-var h = function h(type, attrs) {
-  var props = attrs || {};
-  var key = props.key || null;
-  var ref = props.ref || null;
-  delete props.key;
-  delete props.ref;
-
-  for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-    children[_key - 2] = arguments[_key];
-  }
-
-  props.children = children;
-  return {
-    type: type,
-    props: props,
-    key: key,
-    ref: ref
-  };
-};
-
-exports.h = exports.createElement = h;
-var isArr = Array.isArray;
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 var isFn = function isFn(fn) {
   return typeof fn === 'function';
@@ -163,9 +140,98 @@ var isText = function isText(fn) {
   return typeof fn === 'string' || typeof fn === 'number';
 };
 
-var getKeys = Object.keys;
-var id = 0;
+var isStuff = function isStuff(v) {
+  return v !== null && v !== false && v !== true;
+};
+
+var h = function h(type, attrs) {
+  var _ref;
+
+  var props = attrs || {};
+  var key = props.key || null;
+  var ref = props.ref || null;
+  delete props.key;
+  delete props.ref; // 过滤 undefined
+  // 数组扁平化
+
+  for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+    children[_key - 2] = arguments[_key];
+  }
+
+  var childrenElement = (_ref = []).concat.apply(_ref, children).reduce(function (list, child) {
+    // 过滤非真实意义的元素，比如 nul、true、false
+    if (isStuff(child)) {
+      if (isText(child)) {
+        list.push(createText(child));
+      } else {
+        list.push(child);
+      }
+    }
+
+    return list;
+  }, []);
+
+  props.children = childrenElement;
+  return {
+    type: type,
+    props: props,
+    key: key,
+    ref: ref
+  };
+};
+
+exports.h = exports.createElement = h;
+
+var createText = function createText(text) {
+  return {
+    type: 'text',
+    props: {
+      children: [],
+      content: text
+    }
+  };
+};
+
+var currentHook = {};
+var cursor = 0;
+var hooks = [];
+
+var resetHook = function resetHook(vnode, dom) {
+  cursor = 0;
+  currentHook = {
+    vnode: vnode,
+    dom: dom
+  };
+};
+
+var createSetter = function createSetter(cursor) {
+  return function (newVal) {
+    var hook = hooks[cursor];
+    var current = hook.current;
+    hook.state = newVal;
+    render(current.vnode, current.dom);
+  };
+};
+
+function useState(initVal) {
+  if (hooks[cursor] === undefined) {
+    var hook = {
+      current: currentHook,
+      state: initVal,
+      setter: createSetter(cursor)
+    };
+    hooks.push(hook);
+  }
+
+  var _hooks$cursor = hooks[cursor],
+      state = _hooks$cursor.state,
+      setter = _hooks$cursor.setter;
+  cursor++;
+  return [state, setter];
+}
 /* 
+  TODO: 实现Fiber
+
   fiber = {
     id
     dirty,
@@ -182,135 +248,157 @@ var id = 0;
   }
 */
 
-var createElement = function createElement(vnode, parentEle) {
-  var $ele = isText(vnode) ? document.createTextNode(vnode) : document.createElement(vnode.type);
-  var props = vnode.props || {};
 
-  var _iterator = _createForOfIteratorHelper(getKeys(props)),
-      _step;
+var render = function render(vnode, dom) {
+  var oldDom = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : dom.firstChild;
+  diff(vnode, dom, oldDom);
+};
 
-  try {
-    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-      var propKey = _step.value;
-      if (propKey === 'children') ;else if (propKey.startsWith('on')) {
-        var name = propKey.slice(2);
-        var event = props[propKey];
-        $ele.addEventListener(name, event);
-      } else {
-        var val = props[propKey];
-        $ele.setAttribute && $ele.setAttribute(propKey, val);
-      }
+exports.render = render;
+
+var diff = function diff(vnode, dom, oldDom) {
+  // 获得在创建元素是的vnode
+  var oldVnode = oldDom && oldDom.vnode;
+
+  if (!oldDom) {
+    mount(vnode, dom, oldDom);
+  } else if (isFn(vnode.type)) {
+    diffComponent(vnode, null, dom, oldDom);
+  } else if (oldVnode && oldVnode.type === vnode.type) {
+    diffElement(oldDom, vnode, oldVnode);
+  } else {
+    // TODO: 
+    console.log('不值得比较了');
+  }
+};
+
+var diffComponent = function diffComponent(vnode, oldVnode, dom, oldDom) {
+  if (!oldVnode) {
+    mount(vnode, dom, oldDom);
+  }
+};
+
+var diffElement = function diffElement(oldDom, vnode, oldVnode) {
+  if (oldVnode.type === 'text') {
+    updateTextNode(oldDom, vnode, oldVnode);
+  } else {
+    updateElement(oldDom, vnode, oldVnode);
+  }
+
+  oldDom.vnode = vnode;
+  vnode.props.children.forEach(function (child, i) {
+    // children:只包含元素节点
+    // childNodes:包含所有类型的节点
+    // 这时需要在h函数中剔除undefined元素
+    console.log(child, 'child');
+    diff(child, oldDom, oldDom.childNodes[i]);
+  }); // 试图剔除多余节点 childNodes
+
+  var oldChildNodes = oldDom.childNodes;
+  var oldMaxIndex = oldChildNodes.length - 1;
+  var vnodeMaxIndex = vnode.props.children.length - 1; // 剔除多余节点
+
+  if (oldMaxIndex > vnodeMaxIndex) {
+    // 从后面开始删除，保证index顺序
+    for (var i = oldMaxIndex; i > vnodeMaxIndex; i--) {
+      unmountNode(oldDom, oldChildNodes[i]);
     }
-  } catch (err) {
-    _iterator.e(err);
-  } finally {
-    _iterator.f();
-  }
-
-  var children = props.children || [];
-  children.forEach(function (child) {
-    child && mount({
-      parentNode: $ele,
-      vnode: child
-    });
-  });
-  parentEle.appendChild($ele);
-  return $ele;
-};
-
-var forceUpdate = function forceUpdate(fiber) {
-  return updateComponent.bind(null, fiber);
-};
-
-var updateComponent = function updateComponent(fiber) {
-  var vnode = fiber.vnode,
-      parentNode = fiber.parentNode;
-  var props = Object.assign({}, vnode.props, {
-    $forceUpdate: forceUpdate(fiber)
-  });
-  var v = vnode.type(props);
-
-  if (!fiber.ref) {
-    fiber.ref = createElement(v, parentNode);
-  } else {
-    var ref = createElement(v, parentNode);
-    fiber.parentNode.replaceChild(ref, fiber.ref);
   }
 };
 
-var updateElement = function updateElement(fiber) {
-  var vnode = fiber.vnode,
-      parentNode = fiber.parentNode;
-
-  if (isArr(vnode)) {
-    vnode.forEach(function (v) {
-      return createElement(v, parentNode);
-    });
-  } else {
-    createElement(vnode, parentNode);
-  }
-};
-
-var mount = function mount(fiber) {
-  var vnode = fiber.vnode;
-
+var mount = function mount(vnode, dom, oldDom) {
   if (isFn(vnode.type)) {
-    updateComponent(fiber);
+    return mountComponent(vnode, dom, oldDom);
   } else {
-    updateElement(fiber);
+    return mountElement(vnode, dom, oldDom);
   }
 };
 
-var createApp = function createApp(vnode, node) {
-  var rootFiber = {
-    id: id,
-    parentNode: node,
-    vnode: vnode
-  };
-  mount(rootFiber);
-};
+var mountComponent = function mountComponent(vnode, dom, oldDom) {
+  resetHook(vnode, dom);
+  var nextVnode = vnode;
 
-exports.createApp = createApp;
-var handlers = {// set(val) {
-  //   console.log(val, '')
-  // }
-};
-
-var reactive = function reactive(target) {
-  var observed = new Proxy(target, handlers);
-  return observed;
-};
-
-exports.reactive = reactive;
-var state = [];
-var setters = [];
-var isFirstRun = true;
-var cursor = 0;
-
-var createSetter = function createSetter(cursor) {
-  return function (newVal) {
-    state[cursor] = newVal;
-  };
-};
-
-function useState(initVal) {
-  if (isFirstRun) {
-    state.push(initVal);
-    setters.push(createSetter(cursor));
-    isFirstRun = false;
+  while (isFn(nextVnode.type)) {
+    nextVnode = nextVnode.type(vnode.props || {});
   }
 
-  var setter = setters[cursor];
-  var value = state[cursor];
-  cursor++;
-  return [value, setter];
-}
+  return mount(nextVnode, dom, oldDom);
+};
+
+var mountElement = function mountElement(vnode, dom, oldDom, parent) {
+  /*
+    在 h 函数中已经将数组扁平化
+    在处理 map 等jsx 的时候不需要再通过再次判断数组递归
+  */
+  // console.log(isArr(vnode), 'isArr(vnode)')
+  var newDom = null;
+  var nextSibiling = oldDom && oldDom.nextSibiling;
+
+  if (vnode.type === 'text') {
+    newDom = document.createTextNode(vnode.props.content);
+  } else {
+    newDom = document.createElement(vnode.type);
+    updateElement(newDom, vnode);
+  } // 生成元素的的时候顺便造一颗vnode树
+
+
+  newDom.vnode = vnode;
+
+  if (oldDom) {
+    unmountNode(parent, oldDom);
+  }
+
+  if (nextSibiling) {
+    dom.insertBefore(newDom, nextSibiling);
+  } else {
+    dom.appendChild(newDom);
+  }
+
+  vnode.props.children.forEach(function (child) {
+    mount(child, newDom);
+  });
+};
+
+var updateElement = function updateElement(dom, newVnode) {
+  var oldVnode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var newProps = newVnode.props || {};
+  var oldProps = oldVnode.props || {}; // 将新旧属性同时比较以减少遍历次数
+
+  for (var name in _objectSpread(_objectSpread({}, oldProps), newProps)) {
+    var oldValue = oldProps[name];
+    var newValue = newProps[name];
+    if (oldValue == newValue || name === 'children') ;else if (name === 'style') ;else if (name === 'className') {
+      dom.setAttribute('class', newValue);
+    } else if (name.startsWith('on')) {
+      var eventName = name.slice(2).toLowerCase();
+      if (oldValue) dom.removeEventListener(eventName, oldValue, false);
+      dom.addEventListener(eventName, newValue, false);
+    } else if (newValue == null || newValue === false) {
+      dom.removeAttribute(name);
+    } else {
+      dom.setAttribute(name, newValue);
+    }
+  }
+};
+
+var updateTextNode = function updateTextNode(dom, newVnode) {
+  var oldVnode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  if (newVnode.props.content !== oldVnode.props.content) {
+    dom.textContent = newVnode.props.content;
+  }
+
+  dom.vnode = newVnode;
+};
+
+var unmountNode = function unmountNode(dom, child) {
+  child.remove();
+};
 
 var Ez = {
   h: h,
   createElement: h,
-  createApp: createApp,
-  reactive: reactive,
+  render: render,
   useState: useState
 };
 var _default = Ez;
@@ -323,21 +411,27 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = TestComp;
 
-var _ez = require("../ez.esm");
+var _ez = _interopRequireDefault(require("../ez.esm"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function TestComp(props) {
-  return (0, _ez.h)("div", {
+  return _ez.default.createElement("div", {
     className: "home-page"
-  }, props.children);
+  }, _ez.default.createElement("div", null, props.propsTest), props.children);
 }
 },{"../ez.esm":"src/ez.esm.js"}],"src/main.js":[function(require,module,exports) {
 "use strict";
 
-var _ez = require("./ez.esm");
+var _ez = _interopRequireWildcard(require("./ez.esm"));
 
 var _testComp = _interopRequireDefault(require("./views/test-comp"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } if (obj === null || typeof obj !== "object" && typeof obj !== "function") { return { default: obj }; } var cache = _getRequireWildcardCache(); if (cache && cache.has(obj)) { return cache.get(obj); } var newObj = {}; var hasPropertyDescriptor = Object.defineProperty && Object.getOwnPropertyDescriptor; for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = hasPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : null; if (desc && (desc.get || desc.set)) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } newObj.default = obj; if (cache) { cache.set(obj, newObj); } return newObj; }
 
 function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
 
@@ -351,35 +445,52 @@ function _iterableToArrayLimit(arr, i) { if (typeof Symbol === "undefined" || !(
 
 function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
-function App(props) {
+function App() {
   var _useState = (0, _ez.useState)(10),
       _useState2 = _slicedToArray(_useState, 2),
       count = _useState2[0],
       setCount = _useState2[1];
 
+  var _useState3 = (0, _ez.useState)(1000),
+      _useState4 = _slicedToArray(_useState3, 2),
+      num = _useState4[0],
+      setNum = _useState4[1];
+
   var clickHandler = function clickHandler() {
     setCount(count += 10);
     console.log(count, 'count');
-    props.$forceUpdate();
   };
 
-  return (0, _ez.h)("div", {
+  var clickHandler2 = function clickHandler2() {
+    setNum(num -= 10);
+    console.log(num, 'count');
+  };
+
+  return _ez.default.createElement("div", {
     className: "app-page"
   }, [1, 2, 3].map(function (val) {
-    return (0, _ez.h)("span", null, val + 'map、');
-  }), (0, _ez.h)("div", {
+    return _ez.default.createElement("span", null, val + 'map、');
+  }), _ez.default.createElement("div", {
     name: "proName"
-  }, "a div"), (0, _ez.h)("br", null), (0, _ez.h)(_testComp.default, {
-    propsTest: "222"
-  }, (0, _ez.h)("div", {
+  }, "a div"), _ez.default.createElement("br", null), _ez.default.createElement(_testComp.default, {
+    propsTest: "propsTest......"
+  }, _ez.default.createElement("div", {
     className: "btn"
-  }, (0, _ez.h)("span", null, "number: "), (0, _ez.h)("span", null, count)), (0, _ez.h)("button", {
+  }, _ez.default.createElement("span", null, "count: "), _ez.default.createElement("span", null, count)), _ez.default.createElement("button", {
     className: "btn",
     onclick: clickHandler
+  }, "add number"), _ez.default.createElement("div", {
+    className: "btn"
+  }, _ez.default.createElement("span", null, "num: "), _ez.default.createElement("span", null, num)), _ez.default.createElement("button", {
+    className: "btn",
+    onclick: clickHandler2
   }, "add number")));
 }
 
-(0, _ez.createApp)((0, _ez.h)(App, null), document.body);
+var root = document.querySelector("#app");
+(0, _ez.render)(_ez.default.createElement(App, {
+  name: "mokou"
+}), root);
 },{"./ez.esm":"src/ez.esm.js","./views/test-comp":"src/views/test-comp.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
@@ -408,7 +519,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "58625" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64097" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};
