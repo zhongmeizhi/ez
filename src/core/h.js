@@ -13,13 +13,9 @@ export const h = function (type, attrs, ...children) {
   const childrenElement = [].concat(...children).reduce((list, child) => {
     // 过滤非真实意义的元素，比如 nul、true、false
     if (isStuff(child)) {
-      if (isText(child)) {
-        list.push(createText(child));
-      } else {
-        list.push(child);
-      }
+      const vnode = isText(child) ? createText(child) : child;
+      list.push(vnode);
     }
-
     return list;
   }, [])
 
